@@ -1,0 +1,39 @@
+version: '2'
+networks: 
+  proxy2:
+    external: true
+services:
+  uber-server:
+    image: uber-server.jar
+    restart: always
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "8090:8090" 
+    networks:
+      - proxy2
+    depends_on:
+      - clusterf-proxy
+  clusterf-proxy:
+    image: andymacdonald/clusterf-chaos-proxy
+    environment:
+      JAVA_OPTS: "-Dchaos.strategy=RANDOM_HAVOC -Ddestination.hostProtocolAndPort=http://database:3100 -Dchaos.strategy.delayResponse.random.maxSeconds=10"
+    ports:
+      - "8088:8080"
+    networks:
+      - proxy2
+  database:
+    image: mitchallen/random-server
+    expose:
+    - 3100
+    networks:
+      - proxy2
+
+
+
+
+
+
+
+
